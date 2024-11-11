@@ -22,12 +22,18 @@ schedule_notification() {
 if [ -n "$1" ]; then
     # If a parameter is provided, use it as the scheduled time
     echo "Setting timer for $1"
-    echo "$(declare -f schedule_notification); schedule_notification" | at "$1"
+    at "$1" <<EOF
+$(declare -f schedule_notification)
+schedule_notification
+EOF
 else
     # No parameter provided, add 45 minutes to the current time
     TIME=$(date -d "+45 minutes" +"%H:%M")
     echo "No time parameter provided. Setting a 45-minute timer (ends at $TIME)"
-    echo "$(declare -f schedule_notification); schedule_notification" | at "$1"
+    at "$TIME" <<EOF
+$(declare -f schedule_notification)
+schedule_notification
+EOF
 fi
 
 # Confirm the task has been scheduled
