@@ -6,16 +6,34 @@ if ! command -v espeak &> /dev/null; then
     sudo apt update && sudo apt install -y espeak
 fi
 
+# Check if notify-send is installed
+if ! command -v notify-send &> /dev/null; then
+    echo "notify-send is not installed. Installing notify-send..."
+    sudo apt install -y libnotify-bin
+fi
+
+# Define the function to be called by the 'at' command
+schedule_notification() {
+    espeak "times up"
+    notify-send "Time's Up" "Your timer has ended!"
+}
+
 # Set the timer
 if [ -n "$1" ]; then
     # If a parameter is provided, use it as the scheduled time
     echo "Setting timer for $1"
-    echo "espeak 'times up'" | at "$1"
+    at "$1" <<EOF
+$(declare -f schedule_notification)
+schedule_notification
+EOF
 else
     # No parameter provided, add 45 minutes to the current time
     TIME=$(date -d "+45 minutes" +"%H:%M")
     echo "No time parameter provided. Setting a 45-minute timer (ends at $TIME)"
-    echo "espeak 'times up'" | at "$TIME"
+    at "$TIME" <<EOF
+$(declare -f schedule_notification)
+schedule_notification
+EOF
 fi
 
 # Confirm the task has been scheduled
